@@ -1,0 +1,41 @@
+---
+title: 'An Analysis of Spotify Worldwide Daily Song Ranking'
+author: "Nathaniel Lao"
+date: "5/18/2018"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(lubridate)
+```
+
+# Introduction
+
+_Spotify_ has become one of the most popular applications that offer music streaming on popular mobile and desktop devices. Due to its popularity, the streaming trends of _Spotify_ users can provide a sample of a song's popularity across the world. As a professional musician, I am curious of the life and death of top songs in the industry and I wish to gain some insight on whether or not it is beneficial to releases songs in batches (i.e. albums) or at one of a time (i.e. singles).
+
+In this analysis, we will explore the common <!--- BLAH BLAH --->
+
+
+# Data Wrangling
+
+## Importing Raw Data
+
+_Spotify_ keeps records of the daily _Top 200 Charts_ for various countries in a dedicated site: https://spotifycharts.com/. We can scrape data systematically by downloading the CSV file using the url: https://spotifycharts.com/regional/global/daily/YEAR-MO-DY/download. For this analysis, we will scrape data from the 'global' dataset in daily values. The range of the analysis SHOULD BE DYNAMIC and include the current date: `r Sys.Date()` and one year prior `r Sys.Date() - years(1)`
+
+```{r import_data}
+# Get start and end date
+end_date <- Sys.Date()
+start_date <- end_date - years(1)
+
+
+```
+
+
+
+
+

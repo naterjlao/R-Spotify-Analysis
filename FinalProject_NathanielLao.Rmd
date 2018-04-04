@@ -1,5 +1,5 @@
 ---
-title: 'An Analysis of Spotify Worldwide Daily Song Ranking'
+title: 'An Analysis of 200 Worldwide Daily Song Rankings in Spotify'
 author: "Nathaniel Lao"
 date: "5/18/2018"
 output:
@@ -12,6 +12,7 @@ output:
 library(dplyr)
 library(tidyr)
 library(lubridate)
+library(stringr)
 ```
 
 # Introduction
@@ -23,19 +24,61 @@ In this analysis, we will explore the common <!--- BLAH BLAH --->
 
 # Data Wrangling
 
-## Importing Raw Data
+## Importing Raw Data from Spotify's Top 200
 
-_Spotify_ keeps records of the daily _Top 200 Charts_ for various countries in a dedicated site: https://spotifycharts.com/. We can scrape data systematically by downloading the CSV file using the url: https://spotifycharts.com/regional/global/daily/YEAR-MO-DY/download. For this analysis, we will scrape data from the 'global' dataset in daily values. The range of the analysis SHOULD BE DYNAMIC and include the current date: `r Sys.Date()` and one year prior `r Sys.Date() - years(1)`
+_Spotify_ keeps records of the daily _Top 200 Charts_ for various countries in a dedicated site: https://spotifycharts.com/. We can scrape data systematically by downloading the CSV file using the url: https://spotifycharts.com/regional/global/daily/YEAR-MO-DY/download. For this analysis, we will scrape data from the 'global' dataset in daily values. The scope of this analysis will consider the entire 2017 year: January 1st, 2017 until January 1st, 2018.
+
+In order to pull data from the url, we will define the `start_date` and `end_date` variables as well as the `url_prefix` and the `url_suffix`. These strings will be concatenated to the front and end of the start date so as to have a proper final url for scraping. We can define a function, `get_top200` that accepts a date, appends the necessary strings together to form a URL and finally pull the `data.frame` object via the `read.csv` function. In addition to pull the data, we will mutate the data frame so as to have a `Date` attribute so that it will be easy to distinguish between entities (songs) of different dates.
 
 ```{r import_data}
 # Get start and end date
-end_date <- Sys.Date()
-start_date <- end_date - years(1)
+start_date <- as.Date("2017/1/1")
+end_date <- as.Date("2018/1/1")
 
+# Define URL prefix and suffix
+url_prefix <- 'https://spotifycharts.com/regional/global/daily/'
+url_suffix <- '/download'
 
+# List of Column Names that should exist in the dataframe
+col_names = c("Position","Track.Name","Artist","Streams","URL")
+
+# Define a function that pulls data from a certain date
+get_top200 <- function(date) {
+  url <- str_c(url_prefix,
+               format.Date(date),
+               # TODO The following is needed if the date is the current date
+               #ifelse(date == Sys.Date(),'latest',format.Date(date)),
+               url_suffix)
+  # TODO Uncomment for debug
+  # print(str_c("Pulling from ",url))
+  
+  # Pull data from web
+  top200_df <- read.csv(url)
+  
+  # There are sometimes file that do not exist, this handles the exception
+  ifelse(all(colnames(top200_df) %in% col_names),
+         top200_df <- top200_df %>% mutate(Date = date), # Create a date attribute
+         top200_df <- data.frame()) # Return an empty data frame if invalid
+  
+  top200_df
+}
 ```
 
+We can now use the code to pull all of the data frames of the `Top 200 Global Songs` and combine them via the `rbind` function. (The `rbind` function basically combines two data frames, so long as they hae the same columns. Note that this is different from `join`, as `join` serves to resolve entities between two datasets.)
 
+```{r pull_top200, eval=TRUE}
+top200_df <- data.frame()
+date <- start_date
 
+while (date <= end_date) {
+  top200_df <- top200_df %>%
+    rbind(get_top200(date))
+  date <- date + 1
+}
+```
+
+```{r display_top200}
+top200_df
+```
 
 

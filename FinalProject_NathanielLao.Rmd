@@ -1,5 +1,5 @@
 ---
-title: 'An Analysis of 200 Worldwide Daily Song Rankings in Spotify'
+title: "An Analysis of Spotify's Top 200 Worldwide Daily Song Rankings in 2017"
 author: "Nathaniel Lao"
 date: "5/18/2018"
 output:
@@ -8,21 +8,39 @@ output:
   pdf_document: default
 ---
 
-```{r setup, include=FALSE}
-library(dplyr)
-library(tidyr)
-library(lubridate)
-library(stringr)
-```
-
 # Introduction
 
 _Spotify_ has become one of the most popular applications that offer music streaming on popular mobile and desktop devices. Due to its popularity, the streaming trends of _Spotify_ users can provide a sample of a song's popularity across the world. As a professional musician, I am curious of the life and death of top songs in the industry and I wish to gain some insight on whether or not it is beneficial to releases songs in batches (i.e. albums) or at one of a time (i.e. singles).
 
 In this analysis, we will explore the common <!--- BLAH BLAH --->
 
+<!--- MORE TOPICS --->
+We can extract data from _Billboard Top 100 Songs of All Time_: http://billboardtop100of.com/ for analysis.
 
-# Data Wrangling
+# Setting Up RStudio
+
+For this project, we will need to install and mount a number libraries for use in analysis.
+
+The libraries that are needed to be installed as dependencies for the `spotifyr` class are `stringdist` and `devtools`. We can then install the _devloper_ version of `spotifyr` from _GitHub_. These installation should only be called once per system.
+
+```{r install_pck,eval=FALSE}
+# The following is needed for the spotifyr package
+install.packages('stringdist')
+install.packages('devtools')
+devtools::install_github('charlie86/spotifyr')
+```
+
+We can now mount the needed libraries.
+
+```{r setup_pck,message=FALSE,error=FALSE}
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(stringr) # For string manpulation
+library(spotifyr) # Allows for extracting metadata for songs
+```
+
+# Data Scraping
 
 ## Importing Raw Data from Spotify's Top 200
 
@@ -92,7 +110,7 @@ if (nrow(top200_df) == 0) { top200_df <- read.csv(file_output) %>% select(-X)}
 ```
 
 ```{r}
-## Display the data
+# Display the data
 top200_df %>%
   head(10)
 ```
@@ -101,34 +119,16 @@ top200_df %>%
 
 _Spotify_ is a developer friendly platform, an API is available for use in various languages: https://developer.spotify.com/. In the _R_ development language, there exists a wrapper library for the _Spotify_ API, `spotifyr` that can be used to extract data. Special thanks to _charlie86_ for this code: https://github.com/charlie86/spotifyr.
 
-```{r installing_spotifyr,eval=FALSE}
-# Installing and mounting the spotifyr library
-# install.packages('spotifyr')
-# library(spotifyr)
-# remove.packages('spotifyr')
-
-# THESE ARE THE DEVELOPMENT TOOLS THAT ARE BETTER NEEDED
-# Installation and mounting
-install.packages('stringdist')
-install.packages('devtools')
-devtools::install_github('charlie86/spotifyr')
-```
-
-```{r mounting_spotifyr,eval=TRUE,message=FALSE,warning=FALSE}
-library(spotifyr)
-```
-
 ```{r client_login,eval=TRUE,include=FALSE}
 client_id = 'f6eb05cabe1b40918336d70c9b9d157e'
 client_secret = '5615c7eb790a471fba93915d37e8a367'
 ```
 
-In order to use `spotifyr`, it is necessary to generate a `client_id` and a `client_secret` code from the developer site. Since these codes are not meant to be public, I have previously set the codes to their respective variables. The following code will set these values to System Environment variables and pull the `access_token`.
+In order to use `spotifyr`, it is necessary to generate a `client_id` and a `client_secret` code from the developer site. Since these codes are not meant to be public, I have previously set the codes to their respective variables. The following code will set these values to System Environment variables `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` which will be used by the `get_spotify_access_token()` method present in every `spotifyr` requests.
 
 ```{r setup_spotifyr,eval=TRUE}
 Sys.setenv(SPOTIFY_CLIENT_ID = client_id)
 Sys.setenv(SPOTIFY_CLIENT_SECRET = client_secret)
-access_token <- get_spotify_access_token()
 ```
 
 
@@ -136,5 +136,11 @@ access_token <- get_spotify_access_token()
 uri <- get_artists('radiohead')$artist_uri[1]
 get_artist_audio_features('the beatles') %>% select(track_name)
 ```
+
+# Data Tidying
+
+# Resources
+
+There are various resources that can be used for reference:
 
 

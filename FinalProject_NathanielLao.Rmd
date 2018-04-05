@@ -30,7 +30,7 @@ _Spotify_ keeps records of the daily _Top 200 Charts_ for various countries in a
 
 In order to pull data from the url, we will define the `start_date` and `end_date` variables as well as the `url_prefix` and the `url_suffix`. These strings will be concatenated to the front and end of the start date so as to have a proper final url for scraping. We can define a function, `get_top200` that accepts a date, appends the necessary strings together to form a URL and finally pull the `data.frame` object via the `read.csv` function. In addition to pull the data, we will mutate the data frame so as to have a `Date` attribute so that it will be easy to distinguish between entities (songs) of different dates.
 
-```{r import_data}
+```{r get_top200}
 # Get start and end date
 start_date <- as.Date("2017/1/1")
 end_date <- as.Date("2018/1/1")
@@ -64,21 +64,77 @@ get_top200 <- function(date) {
 }
 ```
 
-We can now use the code to pull all of the data frames of the `Top 200 Global Songs` and combine them via the `rbind` function. (The `rbind` function basically combines two data frames, so long as they hae the same columns. Note that this is different from `join`, as `join` serves to resolve entities between two datasets.)
+We can now use the code to pull all of the data frames of the `Top 200 Global Songs` and combine them via the `rbind` function. (The `rbind` function basically combines two data frames, so long as they hae the same columns. Note that this is different from `join`, as `join` serves to resolve entities between two datasets.) Since importing the data from the web takes a relatively long time, it would be prudent to save the newly created data frame into a `csv` file.
 
-```{r pull_top200, eval=TRUE}
-top200_df <- data.frame()
+```{r import_top200_setup}
+# Set a variable for the processing date
 date <- start_date
+# Set the empty dataframe to be added on
+top200_df <- data.frame()
+# Name of output file
+file_output <- "data/2017top200songs.csv"
+```
 
+```{r import_top200,eval=FALSE}
+# Iterate every date from start to end
 while (date <= end_date) {
   top200_df <- top200_df %>%
     rbind(get_top200(date))
   date <- date + 1
 }
+
+# Save the file to csv
+top200_df %>% write.csv(file_output)
 ```
 
-```{r display_top200}
-top200_df
+```{r,echo=FALSE}
+if (nrow(top200_df) == 0) { top200_df <- read.csv(file_output) %>% select(-X)}
+```
+
+```{r}
+## Display the data
+top200_df %>%
+  head(10)
+```
+
+## Retrieving Song Metadata using `spotifyr`
+
+_Spotify_ is a developer friendly platform, an API is available for use in various languages: https://developer.spotify.com/. In the _R_ development language, there exists a wrapper library for the _Spotify_ API, `spotifyr` that can be used to extract data. Special thanks to _charlie86_ for this code: https://github.com/charlie86/spotifyr.
+
+```{r installing_spotifyr,eval=FALSE}
+# Installing and mounting the spotifyr library
+# install.packages('spotifyr')
+# library(spotifyr)
+# remove.packages('spotifyr')
+
+# THESE ARE THE DEVELOPMENT TOOLS THAT ARE BETTER NEEDED
+# Installation and mounting
+install.packages('stringdist')
+install.packages('devtools')
+devtools::install_github('charlie86/spotifyr')
+```
+
+```{r mounting_spotifyr,eval=TRUE,message=FALSE,warning=FALSE}
+library(spotifyr)
+```
+
+```{r client_login,eval=TRUE,include=FALSE}
+client_id = 'f6eb05cabe1b40918336d70c9b9d157e'
+client_secret = '5615c7eb790a471fba93915d37e8a367'
+```
+
+In order to use `spotifyr`, it is necessary to generate a `client_id` and a `client_secret` code from the developer site. Since these codes are not meant to be public, I have previously set the codes to their respective variables. The following code will set these values to System Environment variables and pull the `access_token`.
+
+```{r setup_spotifyr,eval=TRUE}
+Sys.setenv(SPOTIFY_CLIENT_ID = client_id)
+Sys.setenv(SPOTIFY_CLIENT_SECRET = client_secret)
+access_token <- get_spotify_access_token()
+```
+
+
+```{r}
+uri <- get_artists('radiohead')$artist_uri[1]
+get_artist_audio_features('the beatles') %>% select(track_name)
 ```
 
 

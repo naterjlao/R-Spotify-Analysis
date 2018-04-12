@@ -38,11 +38,12 @@ library(tidyr)
 library(lubridate)
 library(stringr) # For string manpulation
 library(spotifyr) # Allows for extracting metadata for songs
+library(ggplot2)
 ```
 
-# Data Scraping
+# Data Wrangling
 
-## Importing Raw Data from Spotify's Top 200
+## Scraping Data from Spotify's Top 200
 
 _Spotify_ keeps records of the daily _Top 200 Charts_ for various countries in a dedicated site: https://spotifycharts.com/. We can scrape data systematically by downloading the CSV file using the url: https://spotifycharts.com/regional/global/daily/YEAR-MO-DY/download. For this analysis, we will scrape data from the 'global' dataset in daily values. The scope of this analysis will consider the entire 2017 year: January 1st, 2017 until January 1st, 2018.
 
@@ -132,10 +133,36 @@ Sys.setenv(SPOTIFY_CLIENT_SECRET = client_secret)
 ```
 
 
-```{r}
-uri <- get_artists('radiohead')$artist_uri[1]
-get_artist_audio_features('the beatles') %>% select(track_name)
+### SAMPLE CODE FOR TESTING
+
+```{r,eval=FALSE}
+beatles_df <- get_artist_audio_features('The Beatles') 
+led_zeppelin_df <- get_artist_audio_features('Led Zeppelin')
+rolling_stones_df <- get_artist_audio_features('The Rolling Stones')
 ```
+
+```{r,eval=FALSE}
+band_df <- rolling_stones_df
+```
+
+```{r,eval=FALSE}
+## GET THE ACOUSTICNESS OF SONGS
+band_df %>%
+  select(track_name, acousticness) %>%
+  arrange(desc(acousticness)) %>%
+  mutate(acousticness = round(acousticness * 100)) %>%
+  unique()
+```
+
+```{r, eval=FALSE}
+band_df %>%
+  ggplot(mapping=aes(x=tempo)) +
+  geom_density()
+```
+
+## Scraping Data from _Billboard's Top 100_
+
+With _Spotify_, there are only information of songs from 2017 to present day. In order extrapolate more data from more distant history, we can scrape data from _Billboard's Top 100 Songs_ which contains a top 100 list of previous years from 
 
 # Data Tidying
 

@@ -45,9 +45,9 @@ library(ggplot2)
 
 ## Scraping Data from Spotify's Top 200
 
-_Spotify_ keeps records of the daily _Top 200 Charts_ for various countries in a dedicated site: https://spotifycharts.com/. We can scrape data systematically by downloading the CSV file using the url: https://spotifycharts.com/regional/global/daily/YEAR-MO-DY/download. For this analysis, we will scrape data from the 'global' dataset in daily values. The scope of this analysis will consider the entire 2017 year: January 1st, 2017 until January 1st, 2018.
+_Spotify_ keeps records of the daily _Top 200 Charts_ for various countries in a dedicated site: https://spotifycharts.com/. We can scrape the data systematically by downloading the CSV file using the url: https://spotifycharts.com/regional/global/daily/YEAR-MO-DY/download. For this analysis, we will scrape data from the Global dataset of daily values. The scope of this analysis will be the entire 2017 year January 1st, 2017 to January 1st, 2018, inclusive.
 
-In order to pull data from the url, we will define the `start_date` and `end_date` variables as well as the `url_prefix` and the `url_suffix`. These strings will be concatenated to the front and end of the start date so as to have a proper final url for scraping. We can define a function, `get_top200` that accepts a date, appends the necessary strings together to form a URL and finally pull the `data.frame` object via the `read.csv` function. In addition to pull the data, we will mutate the data frame so as to have a `Date` attribute so that it will be easy to distinguish between entities (songs) of different dates.
+In order to pull data from the url, we will define the `start_date` and `end_date` variables as well as the `url_prefix` and the `url_suffix`. These strings will be used to form the proper url. We can define a function, `get_top200` that accepts a date, appends the necessary strings together to form a URL, and finally pull the `data.frame` object via the `read.csv` function. We will add a `date` attribute in order distinguish lists.
 
 ```{r get_top200}
 # Get start and end date

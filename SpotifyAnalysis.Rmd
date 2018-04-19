@@ -65,12 +65,7 @@ col_names = c("Position","Track.Name","Artist","Streams","URL")
 get_top200 <- function(date) {
   url <- str_c(url_prefix,
                format.Date(date),
-               # TODO The following is needed if the date is the current date
-               #ifelse(date == Sys.Date(),'latest',format.Date(date)),
                url_suffix)
-  # TODO Uncomment for debug
-  # print(str_c("Pulling from ",url))
-  
   # Pull data from web
   top200_df <- read.csv(url)
   
@@ -86,32 +81,60 @@ get_top200 <- function(date) {
 We can now use the code to pull all of the data frames of the `Top 200 Global Songs` and combine them via the `rbind` function. (The `rbind` function basically combines two data frames, so long as they hae the same columns. Note that this is different from `join`, as `join` serves to resolve entities between two datasets.) Since importing the data from the web takes a relatively long time, it would be prudent to save the newly created data frame into a `csv` file.
 
 ```{r import_top200_setup}
-# Set a variable for the processing date
-date <- start_date
-# Set the empty dataframe to be added on
-top200_df <- data.frame()
-# Name of output file
-file_output <- "data/2017top200songs.csv"
+# Set data directory
+data_dir <- "data/"
+get_path <- function(filename) {
+  str_c(data_dir,filename)
+}
 ```
 
+We can now scrape the data directly from the Spotify website: _Note: this process takes a long time depending on your internet connection. We will export the data into a csv later so that this process will only need to be executed once. It is recommended to set _`eval=FALSE` _after saving the csv._
+
 ```{r import_top200,eval=FALSE}
+date <- start_date # set data counter
+top200_df <- data.frame() # initialize empty df
+
 # Iterate every date from start to end
+# And get top 200 songs
 while (date <= end_date) {
+  print(str_c("Processing ", date))
   top200_df <- top200_df %>%
+    # Concat the current data frame with new data
     rbind(get_top200(date))
   date <- date + 1
 }
+```
 
+For purposes of consistency, we will rename the columns of the data frame for future use. We will save the dataframe in to `csv` locally for future use.
+
+```{r cleanup_export, eval=FALSE}
+top200_df <- top200_df %>%
+  rename(position = Position,
+         track_name = Track.Name,
+         artist_name = Artist,
+         streams = Streams,
+         url = URL,
+         date = Date)
+
+# Set filename
+top200_filename <- "top200songs.csv"
 # Save the file to csv
-top200_df %>% write.csv(file_output)
+top200_df %>% 
+  write.csv(get_path(top200_filename))
 ```
 
-```{r,echo=FALSE}
-if (nrow(top200_df) == 0) { top200_df <- read.csv(file_output) %>% select(-X)}
+After saving the `csv` file, dataframe can be recalled by the following code:
+
+```{r import_csv}
+top200_df <- top200_filename %>%
+  get_path %>%
+  read.csv() %>%
+  select(-X)
 ```
+
+After scraping the website, we get this dataframe:
 
 ```{r}
-# Display the data
 top200_df %>%
   head(10)
 ```
@@ -134,6 +157,23 @@ Sys.setenv(SPOTIFY_CLIENT_SECRET = client_secret)
 
 
 ### SAMPLE CODE FOR TESTING
+
+### TEST 1
+
+```{r, eval = FALSE}
+albums <- get_artist_albums('the beatles')
+```
+```{r, eval= FALSE}
+tracks <- albums %>% left_join(get_album_tracks(.),.)
+```
+
+```{r, eval = FALSE}
+tracks %>% 
+  filter(album_name == "Sgt. Peppers Lonely Hearts Club Band (Deluxe Edition)") %>%
+  full_join(.,get_track_audio_features(.))
+```
+
+### TEST 2
 
 ```{r,eval=FALSE}
 beatles_df <- get_artist_audio_features('The Beatles') 
@@ -159,6 +199,51 @@ band_df %>%
   ggplot(mapping=aes(x=tempo)) +
   geom_density()
 ```
+
+### TEST 3
+
+Sample 10 songs for top 200
+
+```{r, eval=FALSE}
+test_df <- top200_df %>%
+  sample_n(10)
+```
+
+Create a vector of processed artists and an empty dataframe
+
+```{r, eval=FALSE}
+artists <- test_df$artist_name %>% as.character()
+tracks <- data.frame()
+
+//TODO check accuracy of the processed data
+
+for (i in 1:length(artists)) {
+  # Get the current artist
+  artist <- artists[i]
+  print(str_c("Processing Artist: ", artist))
+  
+  # Get artist's albums
+  albums <- artist %>% get_artist_albums()
+  print("Pulled Albums")
+  
+  # Compile all tracks
+  if (nrow(albums) > 0) {
+    tracks <- albums %>%
+      get_album_tracks() %>%
+      rbind(tracks,.)
+    print("Pulled Tracks")
+  } else {
+    print(str_c(artist, " does not have an album"))
+  }
+}
+  
+# Get tracks metadata
+tracks <- tracks %>%
+  full_join(.,get_track_audio_features(.))
+
+```
+
+## Compiling 
 
 ## Scraping Data from _Billboard's Top 100_
 
